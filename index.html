@@ -1,0 +1,1750 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>SVG to PNG</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      color-scheme: dark;
+      font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+
+      color: #d4d4d4;
+      background: #181818;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #181818;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    main {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      color: #e0e0e0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .description {
+      margin: 0 0 24px;
+      color: #777;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .section {
+      margin-bottom: 20px;
+      border: 1px solid #393939;
+      background: #1c1c1c;
+    }
+
+    .section-header {
+      padding: 9px 12px;
+      border-bottom: 1px solid #393939;
+      background: #262626;
+      color: #aaa;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .section-content {
+      padding: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      color: #b9b9b9;
+      font-size: 12px;
+    }
+
+    .field-label::before {
+      color: #686868;
+      content: "> ";
+    }
+
+    input[type="file"],
+    input[type="number"],
+    textarea,
+    select {
+      border: 1px solid #494949;
+      border-radius: 0;
+      outline: none;
+      color: #ddd;
+      background: #161616;
+    }
+
+    input[type="file"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #888;
+      box-shadow: 0 0 0 1px #888;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      color: #aaa;
+    }
+
+    input[type="file"]::file-selector-button {
+      margin-right: 12px;
+      padding: 6px 10px;
+      border: 1px solid #555;
+      color: #d0d0d0;
+      background: #303030;
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: #3a3a3a;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      height: 36px;
+      padding: 6px 9px;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 300px;
+      padding: 12px;
+      resize: vertical;
+      tab-size: 2;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .source-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns:
+        minmax(100px, 1fr)
+        minmax(100px, 1fr)
+        minmax(180px, 1.5fr)
+        minmax(150px, 1.2fr);
+      gap: 14px;
+      align-items: end;
+    }
+
+    .settings-grid + .settings-grid {
+      margin-top: 14px;
+    }
+
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 10px;
+      border: 1px solid #444;
+      background: #181818;
+      color: #bbb;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-field input {
+      margin: 0 9px 0 0;
+      accent-color: #aaa;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 7px 14px;
+      border: 1px solid #5a5a5a;
+      border-radius: 0;
+      color: #ddd;
+      background: #303030;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: #777;
+      background: #3a3a3a;
+    }
+
+    button:active:not(:disabled) {
+      background: #242424;
+    }
+
+    button.primary {
+      border-color: #888;
+      color: #111;
+      background: #c8c8c8;
+      font-weight: 700;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: #e0e0e0;
+    }
+
+    button:disabled {
+      border-color: #393939;
+      color: #666;
+      background: #242424;
+      cursor: not-allowed;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: flex-start;
+      min-height: 42px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid #393939;
+      background: #171717;
+      color: #999;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .status-line::before {
+      flex: 0 0 auto;
+      margin-right: 8px;
+      color: #777;
+      content: "[status]";
+    }
+
+    .status-line.success {
+      color: #d0d0d0;
+    }
+
+    .status-line.success::before {
+      content: "[ready]";
+    }
+
+    .status-line.error {
+      border-color: #666;
+      color: #efefef;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          #232323,
+          #232323 8px,
+          #1b1b1b 8px,
+          #1b1b1b 16px
+        );
+    }
+
+    .status-line.error::before {
+      color: #ddd;
+      content: "[error]";
+    }
+
+    .preview-shell {
+      position: relative;
+      min-height: 320px;
+      overflow: auto;
+      border: 1px solid #393939;
+      background-color: #aaa;
+      background-image:
+        linear-gradient(
+          45deg,
+          #888 25%,
+          transparent 25%
+        ),
+        linear-gradient(
+          -45deg,
+          #888 25%,
+          transparent 25%
+        ),
+        linear-gradient(
+          45deg,
+          transparent 75%,
+          #888 75%
+        ),
+        linear-gradient(
+          -45deg,
+          transparent 75%,
+          #888 75%
+        );
+      background-position:
+        0 0,
+        0 10px,
+        10px -10px,
+        -10px 0;
+      background-size: 20px 20px;
+    }
+
+    .preview-stage {
+      display: grid;
+      min-width: 100%;
+      min-height: 320px;
+      padding: 20px;
+      place-items: center;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      background: transparent;
+      box-shadow:
+        0 0 0 1px #555,
+        0 12px 30px rgb(0 0 0 / 35%);
+    }
+
+    canvas[hidden] {
+      display: none;
+    }
+
+    .preview-placeholder {
+      color: #3c3c3c;
+      font-size: 12px;
+      font-weight: 700;
+      text-shadow: 0 1px #ccc;
+    }
+
+    .technical-info {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 14px;
+      border: 1px solid #393939;
+      background: #393939;
+    }
+
+    .technical-item {
+      min-width: 0;
+      padding: 10px;
+      background: #1a1a1a;
+    }
+
+    .technical-key {
+      display: block;
+      margin-bottom: 4px;
+      color: #777;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .technical-value {
+      overflow-wrap: anywhere;
+      color: #bbb;
+      font-size: 12px;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        padding: 16px;
+      }
+
+      .settings-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .technical-info {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      main {
+        padding: 12px;
+      }
+
+      .source-toolbar,
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        display: grid;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      textarea {
+        min-height: 240px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>SVG to PNG</h1>
+
+    <p class="description">
+      Convert an SVG file or SVG source code into a PNG image locally.
+      No data is uploaded.
+    </p>
+
+    <section class="section">
+      <div class="section-header">01 / Source</div>
+
+      <div class="section-content">
+        <div class="source-toolbar">
+          <div class="field">
+            <label class="field-label" for="svgFile">
+              SVG file
+            </label>
+
+            <input
+              id="svgFile"
+              type="file"
+              accept=".svg,image/svg+xml"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field-label">
+              Source action
+            </label>
+
+            <button id="clearButton" type="button">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="svgInput">
+            SVG source
+          </label>
+
+          <textarea
+            id="svgInput"
+            spellcheck="false"
+            placeholder="<svg xmlns=&quot;http://www.w3.org/2000/svg&quot;>...</svg>"
+          ></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">02 / Render configuration</div>
+
+      <div class="section-content">
+        <div class="settings-grid">
+          <div class="field">
+            <label class="field-label" for="widthInput">
+              Output width
+            </label>
+
+            <input
+              id="widthInput"
+              type="number"
+              min="1"
+              max="16384"
+              step="1"
+              value="512"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="heightInput">
+              Output height
+            </label>
+
+            <input
+              id="heightInput"
+              type="number"
+              min="1"
+              max="16384"
+              step="1"
+              value="512"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="fitModeInput">
+              Fit mode
+            </label>
+
+            <select id="fitModeInput">
+              <option value="meet">
+                Contain / no crop
+              </option>
+
+              <option value="slice">
+                Cover / crop
+              </option>
+
+              <option value="none">
+                Stretch
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field-label">
+              Aspect ratio
+            </label>
+
+            <label class="checkbox-field">
+              <input
+                id="keepRatioInput"
+                type="checkbox"
+                checked
+              >
+
+              Lock source ratio
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <div class="field">
+            <label class="field-label" for="paddingInput">
+              Bounds padding (%)
+            </label>
+
+            <input
+              id="paddingInput"
+              type="number"
+              min="0"
+              max="100"
+              step="0.5"
+              value="4"
+            >
+          </div>
+
+          <div class="field">
+            <label class="field-label">
+              Bounds detection
+            </label>
+
+            <label class="checkbox-field">
+              <input
+                id="detectBoundsInput"
+                type="checkbox"
+                checked
+              >
+
+              Detect content bounds
+            </label>
+          </div>
+
+          <div class="field">
+            <label class="field-label">
+              Style override
+            </label>
+
+            <label class="checkbox-field">
+              <input
+                id="overrideStyleInput"
+                type="checkbox"
+                checked
+              >
+
+              Override responsive styles
+            </label>
+          </div>
+
+          <div class="field">
+            <label class="field-label">
+              Background
+            </label>
+
+            <label class="checkbox-field">
+              <input
+                id="whiteBackgroundInput"
+                type="checkbox"
+              >
+
+              Render white background
+            </label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            id="renderButton"
+            class="primary"
+            type="button"
+          >
+            Render preview
+          </button>
+
+          <button
+            id="downloadButton"
+            type="button"
+            disabled
+          >
+            Save PNG
+          </button>
+        </div>
+
+        <div
+          id="message"
+          class="status-line"
+          aria-live="polite"
+        >
+          Waiting for SVG source.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">03 / Preview</div>
+
+      <div class="section-content">
+        <div class="preview-shell">
+          <div class="preview-stage">
+            <div
+              id="previewPlaceholder"
+              class="preview-placeholder"
+            >
+              NO RENDER OUTPUT
+            </div>
+
+            <canvas id="canvas" hidden></canvas>
+          </div>
+        </div>
+
+        <div class="technical-info">
+          <div class="technical-item">
+            <span class="technical-key">Source bounds</span>
+
+            <span
+              id="sourceBoundsValue"
+              class="technical-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div class="technical-item">
+            <span class="technical-key">Generated viewBox</span>
+
+            <span
+              id="viewBoxValue"
+              class="technical-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div class="technical-item">
+            <span class="technical-key">Output</span>
+
+            <span
+              id="outputValue"
+              class="technical-value"
+            >
+              —
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const svgFile = document.querySelector("#svgFile");
+    const svgInput = document.querySelector("#svgInput");
+
+    const widthInput = document.querySelector("#widthInput");
+    const heightInput = document.querySelector("#heightInput");
+    const fitModeInput = document.querySelector("#fitModeInput");
+    const keepRatioInput = document.querySelector("#keepRatioInput");
+    const paddingInput = document.querySelector("#paddingInput");
+
+    const detectBoundsInput =
+      document.querySelector("#detectBoundsInput");
+
+    const overrideStyleInput =
+      document.querySelector("#overrideStyleInput");
+
+    const whiteBackgroundInput =
+      document.querySelector("#whiteBackgroundInput");
+
+    const clearButton = document.querySelector("#clearButton");
+    const renderButton = document.querySelector("#renderButton");
+
+    const downloadButton =
+      document.querySelector("#downloadButton");
+
+    const message = document.querySelector("#message");
+    const canvas = document.querySelector("#canvas");
+
+    const previewPlaceholder =
+      document.querySelector("#previewPlaceholder");
+
+    const sourceBoundsValue =
+      document.querySelector("#sourceBoundsValue");
+
+    const viewBoxValue =
+      document.querySelector("#viewBoxValue");
+
+    const outputValue =
+      document.querySelector("#outputValue");
+
+    const context = canvas.getContext("2d");
+
+    let sourceAspectRatio = null;
+    let changingSize = false;
+
+    svgFile.addEventListener("change", async () => {
+      const file = svgFile.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      try {
+        svgInput.value = await file.text();
+
+        invalidateRender();
+        await inspectSource();
+        await renderSvg();
+      } catch (error) {
+        showError(error);
+      }
+    });
+
+    svgInput.addEventListener("input", () => {
+      invalidateRender();
+
+      window.clearTimeout(svgInput.inspectTimeout);
+
+      svgInput.inspectTimeout = window.setTimeout(() => {
+        inspectSource().catch(() => {
+          sourceAspectRatio = null;
+        });
+      }, 250);
+    });
+
+    widthInput.addEventListener("input", () => {
+      invalidateRender();
+
+      if (
+        changingSize ||
+        !keepRatioInput.checked ||
+        !sourceAspectRatio
+      ) {
+        return;
+      }
+
+      const width = Number(widthInput.value);
+
+      if (!Number.isFinite(width) || width <= 0) {
+        return;
+      }
+
+      changingSize = true;
+
+      heightInput.value = Math.max(
+        1,
+        Math.round(width / sourceAspectRatio)
+      );
+
+      changingSize = false;
+    });
+
+    heightInput.addEventListener("input", () => {
+      invalidateRender();
+
+      if (
+        changingSize ||
+        !keepRatioInput.checked ||
+        !sourceAspectRatio
+      ) {
+        return;
+      }
+
+      const height = Number(heightInput.value);
+
+      if (!Number.isFinite(height) || height <= 0) {
+        return;
+      }
+
+      changingSize = true;
+
+      widthInput.value = Math.max(
+        1,
+        Math.round(height * sourceAspectRatio)
+      );
+
+      changingSize = false;
+    });
+
+    [
+      fitModeInput,
+      paddingInput,
+      detectBoundsInput,
+      overrideStyleInput,
+      whiteBackgroundInput
+    ].forEach((element) => {
+      element.addEventListener("change", invalidateRender);
+      element.addEventListener("input", invalidateRender);
+    });
+
+    keepRatioInput.addEventListener("change", () => {
+      if (
+        keepRatioInput.checked &&
+        sourceAspectRatio
+      ) {
+        const width = Number(widthInput.value);
+
+        if (Number.isFinite(width) && width > 0) {
+          heightInput.value = Math.max(
+            1,
+            Math.round(width / sourceAspectRatio)
+          );
+        }
+      }
+
+      invalidateRender();
+    });
+
+    clearButton.addEventListener("click", () => {
+      svgFile.value = "";
+      svgInput.value = "";
+
+      sourceAspectRatio = null;
+
+      canvas.hidden = true;
+      previewPlaceholder.hidden = false;
+
+      sourceBoundsValue.textContent = "—";
+      viewBoxValue.textContent = "—";
+      outputValue.textContent = "—";
+
+      downloadButton.disabled = true;
+
+      showStatus("Waiting for SVG source.");
+    });
+
+    renderButton.addEventListener("click", async () => {
+      try {
+        await renderSvg();
+      } catch (error) {
+        showError(error);
+      }
+    });
+
+    downloadButton.addEventListener("click", () => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          showError(
+            new Error("Unable to create the PNG blob.")
+          );
+
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = objectUrl;
+        link.download = createOutputFilename();
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.setTimeout(() => {
+          URL.revokeObjectURL(objectUrl);
+        }, 1000);
+      }, "image/png");
+    });
+
+    async function inspectSource() {
+      const source = svgInput.value.trim();
+
+      if (!source) {
+        sourceAspectRatio = null;
+        return;
+      }
+
+      const svgDocument = parseSvg(source);
+      const svg = svgDocument.documentElement;
+
+      const existingViewBox = readViewBox(svg);
+
+      if (
+        existingViewBox &&
+        existingViewBox.width > 0 &&
+        existingViewBox.height > 0
+      ) {
+        sourceAspectRatio =
+          existingViewBox.width /
+          existingViewBox.height;
+
+        updateLockedHeight();
+        return;
+      }
+
+      const explicitSize = readExplicitSvgSize(svg);
+
+      if (explicitSize) {
+        sourceAspectRatio =
+          explicitSize.width /
+          explicitSize.height;
+
+        updateLockedHeight();
+        return;
+      }
+
+      if (detectBoundsInput.checked) {
+        const bounds = await measureSvgBounds(svg);
+
+        sourceAspectRatio =
+          bounds.width / bounds.height;
+
+        updateLockedHeight();
+      }
+    }
+
+    function updateLockedHeight() {
+      if (
+        !keepRatioInput.checked ||
+        !sourceAspectRatio
+      ) {
+        return;
+      }
+
+      const width = Number(widthInput.value);
+
+      if (!Number.isFinite(width) || width <= 0) {
+        return;
+      }
+
+      changingSize = true;
+
+      heightInput.value = Math.max(
+        1,
+        Math.round(width / sourceAspectRatio)
+      );
+
+      changingSize = false;
+    }
+
+    async function renderSvg() {
+      showStatus("Parsing and measuring SVG...");
+
+      renderButton.disabled = true;
+      downloadButton.disabled = true;
+
+      try {
+        const outputWidth =
+          readDimension(widthInput, "Width");
+
+        const outputHeight =
+          readDimension(heightInput, "Height");
+
+        const paddingPercent =
+          readPaddingPercent();
+
+        const prepared = await prepareSvg({
+          source: svgInput.value,
+          outputWidth,
+          outputHeight,
+          paddingPercent,
+          detectBounds: detectBoundsInput.checked,
+          overrideResponsiveStyle:
+            overrideStyleInput.checked,
+          fitMode: fitModeInput.value
+        });
+
+        const svgBlob = new Blob(
+          [prepared.svgText],
+          {
+            type: "image/svg+xml;charset=utf-8"
+          }
+        );
+
+        const objectUrl =
+          URL.createObjectURL(svgBlob);
+
+        try {
+          const image = await loadImage(objectUrl);
+
+          canvas.width = outputWidth;
+          canvas.height = outputHeight;
+
+          context.clearRect(
+            0,
+            0,
+            outputWidth,
+            outputHeight
+          );
+
+          if (whiteBackgroundInput.checked) {
+            context.save();
+            context.fillStyle = "#ffffff";
+
+            context.fillRect(
+              0,
+              0,
+              outputWidth,
+              outputHeight
+            );
+
+            context.restore();
+          }
+
+          context.drawImage(
+            image,
+            0,
+            0,
+            outputWidth,
+            outputHeight
+          );
+
+          canvas.hidden = false;
+          previewPlaceholder.hidden = true;
+
+          sourceBoundsValue.textContent =
+            formatBounds(prepared.sourceBounds);
+
+          viewBoxValue.textContent =
+            prepared.viewBox.join(" ");
+
+          outputValue.textContent =
+            `${outputWidth} × ${outputHeight} px`;
+
+          downloadButton.disabled = false;
+
+          showSuccess(
+            `Rendered ${outputWidth} × ${outputHeight} PNG preview.`
+          );
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      } finally {
+        renderButton.disabled = false;
+      }
+    }
+
+    async function prepareSvg(options) {
+      const {
+        source,
+        outputWidth,
+        outputHeight,
+        paddingPercent,
+        detectBounds,
+        overrideResponsiveStyle,
+        fitMode
+      } = options;
+
+      const svgDocument = parseSvg(source);
+      const svg = svgDocument.documentElement;
+
+      ensureSvgNamespaces(svg);
+
+      let sourceBounds;
+      let targetViewBox;
+
+      const existingViewBox = readViewBox(svg);
+
+      if (detectBounds) {
+        sourceBounds = await measureSvgBounds(svg);
+
+        targetViewBox = addPadding(
+          sourceBounds,
+          paddingPercent
+        );
+      } else if (existingViewBox) {
+        sourceBounds = { ...existingViewBox };
+        targetViewBox = { ...existingViewBox };
+      } else {
+        const explicitSize =
+          readExplicitSvgSize(svg);
+
+        if (!explicitSize) {
+          throw new Error(
+            "The SVG has no valid viewBox or fixed width and height. Enable content bounds detection."
+          );
+        }
+
+        sourceBounds = {
+          x: 0,
+          y: 0,
+          width: explicitSize.width,
+          height: explicitSize.height
+        };
+
+        targetViewBox = addPadding(
+          sourceBounds,
+          paddingPercent
+        );
+      }
+
+      assertValidBounds(targetViewBox);
+
+      svg.setAttribute(
+        "viewBox",
+        [
+          formatNumber(targetViewBox.x),
+          formatNumber(targetViewBox.y),
+          formatNumber(targetViewBox.width),
+          formatNumber(targetViewBox.height)
+        ].join(" ")
+      );
+
+      svg.setAttribute(
+        "width",
+        String(outputWidth)
+      );
+
+      svg.setAttribute(
+        "height",
+        String(outputHeight)
+      );
+
+      svg.setAttribute(
+        "preserveAspectRatio",
+        createPreserveAspectRatio(fitMode)
+      );
+
+      if (overrideResponsiveStyle) {
+        applyRootSvgOverrides(svg);
+      }
+
+      const svgText =
+        new XMLSerializer().serializeToString(svg);
+
+      return {
+        svgText,
+        sourceBounds,
+        viewBox: [
+          formatNumber(targetViewBox.x),
+          formatNumber(targetViewBox.y),
+          formatNumber(targetViewBox.width),
+          formatNumber(targetViewBox.height)
+        ]
+      };
+    }
+
+    function applyRootSvgOverrides(svg) {
+      const existingStyle =
+        svg.getAttribute("style") ?? "";
+
+      const overrideStyle = [
+        "width: 100% !important",
+        "height: 100% !important",
+        "max-width: none !important",
+        "max-height: none !important",
+        "min-width: 0 !important",
+        "min-height: 0 !important",
+        "overflow: visible !important"
+      ].join("; ");
+
+      svg.setAttribute(
+        "style",
+        `${existingStyle}; ${overrideStyle}`
+      );
+    }
+
+    async function measureSvgBounds(sourceSvg) {
+      await waitForFonts();
+
+      const host = document.createElement("div");
+
+      Object.assign(host.style, {
+        position: "fixed",
+        left: "-100000px",
+        top: "-100000px",
+        width: "4096px",
+        height: "4096px",
+        visibility: "hidden",
+        overflow: "visible",
+        pointerEvents: "none",
+        contain: "none"
+      });
+
+      const svg = document.importNode(
+        sourceSvg,
+        true
+      );
+
+      ensureSvgNamespaces(svg);
+
+      svg.removeAttribute("width");
+      svg.removeAttribute("height");
+
+      svg.setAttribute(
+        "style",
+        [
+          svg.getAttribute("style") ?? "",
+          "display: block !important",
+          "position: static !important",
+          "width: auto !important",
+          "height: auto !important",
+          "max-width: none !important",
+          "max-height: none !important",
+          "min-width: 0 !important",
+          "min-height: 0 !important",
+          "overflow: visible !important",
+          "transform: none !important"
+        ].join("; ")
+      );
+
+      if (!svg.hasAttribute("viewBox")) {
+        const explicitSize =
+          readExplicitSvgSize(svg);
+
+        if (explicitSize) {
+          svg.setAttribute(
+            "viewBox",
+            `0 0 ${explicitSize.width} ${explicitSize.height}`
+          );
+        } else {
+          svg.setAttribute(
+            "viewBox",
+            "0 0 4096 4096"
+          );
+        }
+      }
+
+      host.appendChild(svg);
+      document.body.appendChild(host);
+
+      try {
+        await nextAnimationFrame();
+        await nextAnimationFrame();
+
+        const geometryBounds =
+          getCombinedGeometryBounds(svg);
+
+        if (geometryBounds) {
+          assertValidBounds(geometryBounds);
+          return geometryBounds;
+        }
+
+        const fallbackBounds = svg.getBBox();
+
+        const result = {
+          x: fallbackBounds.x,
+          y: fallbackBounds.y,
+          width: fallbackBounds.width,
+          height: fallbackBounds.height
+        };
+
+        assertValidBounds(result);
+
+        return result;
+      } finally {
+        host.remove();
+      }
+    }
+
+    function getCombinedGeometryBounds(svg) {
+      const selectors = [
+        "path",
+        "rect",
+        "circle",
+        "ellipse",
+        "line",
+        "polyline",
+        "polygon",
+        "text",
+        "textPath",
+        "image",
+        "foreignObject",
+        "use"
+      ];
+
+      const elements =
+        svg.querySelectorAll(selectors.join(","));
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      let found = false;
+
+      for (const element of elements) {
+        if (!isRenderedGeometry(element)) {
+          continue;
+        }
+
+        let bbox;
+
+        try {
+          bbox = element.getBBox({
+            fill: true,
+            stroke: true,
+            markers: true,
+            clipped: false
+          });
+        } catch {
+          try {
+            bbox = element.getBBox();
+          } catch {
+            continue;
+          }
+        }
+
+        if (
+          !Number.isFinite(bbox.x) ||
+          !Number.isFinite(bbox.y) ||
+          !Number.isFinite(bbox.width) ||
+          !Number.isFinite(bbox.height)
+        ) {
+          continue;
+        }
+
+        const matrix = element.getCTM();
+
+        if (!matrix) {
+          continue;
+        }
+
+        const transformed =
+          transformBoundingBox(bbox, matrix);
+
+        if (
+          transformed.width <= 0 &&
+          transformed.height <= 0
+        ) {
+          continue;
+        }
+
+        minX = Math.min(minX, transformed.x);
+        minY = Math.min(minY, transformed.y);
+
+        maxX = Math.max(
+          maxX,
+          transformed.x + transformed.width
+        );
+
+        maxY = Math.max(
+          maxY,
+          transformed.y + transformed.height
+        );
+
+        found = true;
+      }
+
+      if (!found) {
+        return null;
+      }
+
+      return {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY
+      };
+    }
+
+    function isRenderedGeometry(element) {
+      if (
+        element.closest(
+          "defs, symbol, clipPath, mask, pattern, marker"
+        )
+      ) {
+        return false;
+      }
+
+      const style = getComputedStyle(element);
+
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        Number(style.opacity) !== 0
+      );
+    }
+
+    function transformBoundingBox(bbox, matrix) {
+      const points = [
+        new DOMPoint(bbox.x, bbox.y),
+
+        new DOMPoint(
+          bbox.x + bbox.width,
+          bbox.y
+        ),
+
+        new DOMPoint(
+          bbox.x,
+          bbox.y + bbox.height
+        ),
+
+        new DOMPoint(
+          bbox.x + bbox.width,
+          bbox.y + bbox.height
+        )
+      ].map((point) =>
+        point.matrixTransform(matrix)
+      );
+
+      const xValues = points.map(
+        (point) => point.x
+      );
+
+      const yValues = points.map(
+        (point) => point.y
+      );
+
+      const minX = Math.min(...xValues);
+      const minY = Math.min(...yValues);
+      const maxX = Math.max(...xValues);
+      const maxY = Math.max(...yValues);
+
+      return {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY
+      };
+    }
+
+    function addPadding(bounds, percentage) {
+      const base =
+        Math.max(bounds.width, bounds.height);
+
+      const padding =
+        base * (percentage / 100);
+
+      return {
+        x: bounds.x - padding,
+        y: bounds.y - padding,
+        width: bounds.width + padding * 2,
+        height: bounds.height + padding * 2
+      };
+    }
+
+    function parseSvg(source) {
+      const trimmedSource = source.trim();
+
+      if (!trimmedSource) {
+        throw new Error(
+          "Enter SVG source code or select an SVG file."
+        );
+      }
+
+      const parser = new DOMParser();
+
+      const svgDocument = parser.parseFromString(
+        trimmedSource,
+        "image/svg+xml"
+      );
+
+      const parserError =
+        svgDocument.querySelector("parsererror");
+
+      if (parserError) {
+        throw new Error(
+          "Invalid SVG syntax:\n" +
+          parserError.textContent.trim()
+        );
+      }
+
+      if (
+        svgDocument.documentElement.localName !==
+        "svg"
+      ) {
+        throw new Error(
+          "The root element must be <svg>."
+        );
+      }
+
+      return svgDocument;
+    }
+
+    function ensureSvgNamespaces(svg) {
+      if (!svg.hasAttribute("xmlns")) {
+        svg.setAttribute(
+          "xmlns",
+          "http://www.w3.org/2000/svg"
+        );
+      }
+
+      if (
+        svg.querySelector("[xlink\\:href]") &&
+        !svg.hasAttribute("xmlns:xlink")
+      ) {
+        svg.setAttribute(
+          "xmlns:xlink",
+          "http://www.w3.org/1999/xlink"
+        );
+      }
+    }
+
+    function readViewBox(svg) {
+      const value = svg.getAttribute("viewBox");
+
+      if (!value) {
+        return null;
+      }
+
+      const values = value
+        .trim()
+        .split(/[\s,]+/)
+        .map(Number);
+
+      if (
+        values.length !== 4 ||
+        values.some(
+          (item) => !Number.isFinite(item)
+        )
+      ) {
+        return null;
+      }
+
+      const [x, y, width, height] = values;
+
+      if (width <= 0 || height <= 0) {
+        return null;
+      }
+
+      return {
+        x,
+        y,
+        width,
+        height
+      };
+    }
+
+    function readExplicitSvgSize(svg) {
+      const width = parseSvgLength(
+        svg.getAttribute("width")
+      );
+
+      const height = parseSvgLength(
+        svg.getAttribute("height")
+      );
+
+      if (
+        Number.isFinite(width) &&
+        Number.isFinite(height) &&
+        width > 0 &&
+        height > 0
+      ) {
+        return {
+          width,
+          height
+        };
+      }
+
+      return null;
+    }
+
+    function parseSvgLength(value) {
+      if (!value) {
+        return NaN;
+      }
+
+      const match = value
+        .trim()
+        .match(
+          /^([+-]?(?:\d+\.?\d*|\.\d+))(?:px)?$/i
+        );
+
+      return match
+        ? Number(match[1])
+        : NaN;
+    }
+
+    function createPreserveAspectRatio(mode) {
+      switch (mode) {
+        case "slice":
+          return "xMidYMid slice";
+
+        case "none":
+          return "none";
+
+        case "meet":
+        default:
+          return "xMidYMid meet";
+      }
+    }
+
+    function readDimension(input, label) {
+      const value = Number(input.value);
+
+      if (
+        !Number.isInteger(value) ||
+        value < 1 ||
+        value > 16384
+      ) {
+        throw new Error(
+          `${label} must be an integer between 1 and 16384.`
+        );
+      }
+
+      return value;
+    }
+
+    function readPaddingPercent() {
+      const value = Number(paddingInput.value);
+
+      if (
+        !Number.isFinite(value) ||
+        value < 0 ||
+        value > 100
+      ) {
+        throw new Error(
+          "Bounds padding must be between 0 and 100."
+        );
+      }
+
+      return value;
+    }
+
+    function assertValidBounds(bounds) {
+      if (
+        !Number.isFinite(bounds.x) ||
+        !Number.isFinite(bounds.y) ||
+        !Number.isFinite(bounds.width) ||
+        !Number.isFinite(bounds.height) ||
+        bounds.width <= 0 ||
+        bounds.height <= 0
+      ) {
+        throw new Error(
+          "Unable to determine valid SVG content bounds."
+        );
+      }
+    }
+
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+
+        image.onload = () => resolve(image);
+
+        image.onerror = () => {
+          reject(
+            new Error(
+              "Unable to load the SVG. It may contain inaccessible external images, fonts, or resources."
+            )
+          );
+        };
+
+        image.src = url;
+      });
+    }
+
+    function createOutputFilename() {
+      const sourceName =
+        svgFile.files?.[0]?.name;
+
+      if (!sourceName) {
+        return "converted.png";
+      }
+
+      return (
+        sourceName.replace(/\.svg$/i, "") +
+        ".png"
+      );
+    }
+
+    function formatBounds(bounds) {
+      if (!bounds) {
+        return "—";
+      }
+
+      return [
+        `x=${formatNumber(bounds.x)}`,
+        `y=${formatNumber(bounds.y)}`,
+        `w=${formatNumber(bounds.width)}`,
+        `h=${formatNumber(bounds.height)}`
+      ].join(", ");
+    }
+
+    function formatNumber(value) {
+      return String(
+        Math.round(value * 1000) / 1000
+      );
+    }
+
+    function invalidateRender() {
+      downloadButton.disabled = true;
+
+      if (!svgInput.value.trim()) {
+        showStatus("Waiting for SVG source.");
+      } else {
+        showStatus(
+          "Source or configuration changed. Render again."
+        );
+      }
+    }
+
+    function showStatus(text) {
+      message.textContent = text;
+      message.className = "status-line";
+    }
+
+    function showSuccess(text) {
+      message.textContent = text;
+      message.className =
+        "status-line success";
+    }
+
+    function showError(error) {
+      renderButton.disabled = false;
+      downloadButton.disabled = true;
+
+      message.textContent =
+        error instanceof Error
+          ? error.message
+          : String(error);
+
+      message.className =
+        "status-line error";
+    }
+
+    function nextAnimationFrame() {
+      return new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    }
+
+    async function waitForFonts() {
+      if (document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // Ignore font loading failures.
+        }
+      }
+    }
+  </script>
+</body>
+</html>
